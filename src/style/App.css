@@ -1,0 +1,20 @@
+.searchbar {
+  display: flex;
+  align-items: center;
+  border: 1px solid gray;
+  /* display: inline; */
+} 
+
+.searchbar-input {
+  border: none;
+}
+
+.searchbar-button {
+  padding: 0.7em 2em;
+  border: none;
+  background-color: transparent;
+}
+
+.searchbar-icon {
+  height: 100%;
+}
