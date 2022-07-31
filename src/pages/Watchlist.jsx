@@ -10,7 +10,6 @@ export default function Watchlist() {
   let navigate = useNavigate();
   // track local storage
   const [movieArray, setMovieArray] = useState(() => JSON.parse(localStorage.getItem("movieArray")));
-  console.log(movieArray);
   
   // to handle changes made to movieArray
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState } from "react";import {useNavigate} from "react-router-dom";
+import { useState, useEffect } from "react";import {useNavigate} from "react-router-dom";
 import { IconContext } from "react-icons";
 import { MdLocalMovies } from "react-icons/md";
 import MovieCard from "../components/MovieCard";
@@ -6,11 +6,42 @@ import Nav from "../components/Nav";
 import "../style/FindFilm.css";
 
 export default function FindFilm() {
-  //state to store form value
+  // state to store form value
   const [searchValue, setSearchValue] = useState("");
+  // state to store a list of movies
+  const [movieList, setMovieList] = useState([])
+  // state to track movieList and get detailed info for each movie stored
+  const [detailedMovieList, setDetailedMovieList] = useState([])
+  console.log(detailedMovieList)
+  // state to track movie search results
+  const [isFound, setIsFound] = useState(true)
+  
+  // inititate another api call to get detailed info for each movie in movieList
+  useEffect(() => {
+    setDetailedMovieList([]);
+    movieList && movieList.map(movie => {
+      fetch(`http://www.omdbapi.com/?apikey=e8c5dc6&i=${movie.imdbID}`)
+      .then(response => response.json())
+      .then(data => setDetailedMovieList(prev => [...prev, data]))
+    })
+  }, [movieList])
+  
+  // function to handle form submit
+  function handleSubmit(event){
+    event.preventDefault();
 
-  //state to store returned movie info
-  const [movieInfo, setMovieInfo] = useState()
+    fetch(`http://www.omdbapi.com/?apikey=e8c5dc6&s=${searchValue}`)
+      .then(response => response.json())
+      .then(data => {
+        if(data.Response === "True"){
+          setIsFound(true)
+          setMovieList(data.Search)
+        }
+        else{
+          setIsFound(false);
+        }
+      })
+  }
 
   //function to handle form change
   function handleChange(event){
@@ -19,37 +50,38 @@ export default function FindFilm() {
 
   //function to save movie to local storage
   function addMovie(id){
-    let storageArray = JSON.parse(localStorage.getItem("movieArray"));
-    const newMovieArray = [];
+    let storageArray = JSON.parse(localStorage.getItem("movieArray")) || [];
     
     if(storageArray === null || storageArray.length === 0){
-      // if local storage (w/ key named movieArray is empty)
-      newMovieArray.push(movieInfo)
-      localStorage.setItem("movieArray", JSON.stringify(newMovieArray))
+      detailedMovieList.forEach(movie => {
+        if(movie.imdbID === id){
+          storageArray.push(movie)
+        }
+      })
+      localStorage.setItem("movieArray", JSON.stringify(storageArray));
+      console.log(storageArray);
     }
-    else {
-      let toAdd = true;
-      storageArray.forEach(show => newMovieArray.push(show));
+    else{
+      let exist = false;
+      storageArray.forEach(movie => {
+        if(movie.imdbID === id){
+          exist = true;
+        }
+      })
 
-      for(let show of newMovieArray){
-        show.Title === movieInfo.Title ? toAdd = false : "";
-      }
-
-      toAdd ? newMovieArray.push(movieInfo) : "";
-      localStorage.setItem("movieArray", JSON.stringify(newMovieArray))
-      console.log(newMovieArray);
+      !exist && detailedMovieList.forEach(movie => {
+        if(movie.imdbID === id){
+          storageArray.push(movie);
+          localStorage.setItem("movieArray", JSON.stringify(storageArray));
+        }
+      })
+      console.log(storageArray);
     }
   }
 
-  // function to handle form submit
-  function handleSubmit(event){
-    event.preventDefault();
-    setMovieInfo("");
-
-    fetch(`http://www.omdbapi.com/?apikey=e8c5dc6&t=${searchValue}`)
-      .then(response => response.json())
-      .then(data => setMovieInfo(data))
-  }
+  const movieElement = detailedMovieList.map( movie => {
+    return <MovieCard key={movie.imdbID} {...movie} addMovie={addMovie} id={movie.imdbID} toAdd={true} /> 
+  })
 
   return (
     <div className="component-container">
@@ -63,7 +95,7 @@ export default function FindFilm() {
           searchbar={true}
         />
         <main className="main-container">
-          {movieInfo ? <MovieCard {...movieInfo} addMovie={addMovie} id={movieInfo.imdbID} toAdd={true} /> 
+          {isFound ? detailedMovieList.length > 0 ? movieElement
             : 
             <div className="start">
               <IconContext.Provider value={{className: "start-icon"}}>
@@ -71,9 +103,18 @@ export default function FindFilm() {
               </IconContext.Provider>
               <h3 className="start-text">Start exploring</h3>
             </div>
+            :
+            <div className="search-error">
+              <h2>Unable to find what you're looking for. Please try another search.</h2>
+            </div>
           }
         </main>
     </div>
   )
 }
 
+
+
+    // <div className="search-error">
+    //     <h2>Unable to find what you're looking for. Please try another search.</h2>
+    // </div>

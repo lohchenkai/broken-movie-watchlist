@@ -4,9 +4,9 @@ import star from "../assets/Icon.png";
 
 function MovieCard(props) {
     //destructure props
-    const {Title, imdbRating, Runtime, Genre, Plot, Poster, Response, id, toAdd, addMovie, removeMovie} = props;
+    const {Title, imdbRating, Runtime, Genre, Plot, Poster, id, toAdd, addMovie, removeMovie} = props;
 
-    return Response === "True" ? (
+    return (
         <div className="movie-card">
             <div className="movie-card-aside">
                 <img className="movie-card-image" src={Poster} alt="movie poster"/>
@@ -45,12 +45,6 @@ function MovieCard(props) {
 
                 <div className="movie-card-description">{Plot}</div>
             </div>
-        </div>
-    )
-    :
-    (
-        <div className="search-error">
-            <h2>Unable to find what you're looking for. Please try another search.</h2>
         </div>
     )
 }
