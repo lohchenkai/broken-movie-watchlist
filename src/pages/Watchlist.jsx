@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {useNavigate} from "react-router-dom";
 import { IconContext } from "react-icons";
 import { MdAddCircle } from "react-icons/md";
@@ -12,11 +12,15 @@ export default function Watchlist() {
   const [movieArray, setMovieArray] = useState(() => JSON.parse(localStorage.getItem("movieArray")));
   console.log(movieArray);
   
+  // to handle changes made to movieArray
+  useEffect(() => {
+    localStorage.setItem("movieArray", JSON.stringify(movieArray));
+    console.log(movieArray)
+  }, [movieArray])
+
   // function to delete movie from list
   function removeMovie(id){
     setMovieArray(prev => prev.filter(movie => movie.imdbID !== id));
-    localStorage.setItem("movieArray", JSON.stringify(movieArray));
-    console.log(movieArray)
   }
   
   // getting movie elements
@@ -34,7 +38,7 @@ export default function Watchlist() {
         searchbar={false}
       />
       <main className="main-container">
-        {movieArray ? movieElement
+        {(movieArray.length > 0 && movieArray) ? movieElement
           :
           <div className="empty">
             <h2 className="empty-title">Your watchlist is looking a little empty...</h2>
